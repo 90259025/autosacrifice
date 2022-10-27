@@ -826,35 +826,38 @@
 			
 			else if (this.seed_to_unlock === "queenbeetLump")
 			{
-				this.select_next_target(true);
-				
-				if (this.seed_to_unlock === "")
+				if (!Game.ObjectsById[2].minigame.plants["elderwort"].unlocked)
 				{
-					if (this.fertilizer_requests > 0)
+					this.select_next_target(true);
+					
+					if (this.seed_to_unlock === "")
+					{
+						if (this.fertilizer_requests > 0)
+						{
+							this.change_soil(1);
+						}
+						
+						return;
+					}
+					
+					this.remove_unlocked_plants(false, 2);
+					
+					let setup = this.mutation_setups[this.seed_to_unlock];
+					
+					if (setup.type === 0)
+					{
+						this.unlock_type_0_logic(...(setup.parents), [[0, 5], [2, 5], [4, 5], [5, 0], [5, 2], [5, 4]], [[1, 5], [3, 5], [5, 1], [5, 3], [5, 5]]);
+					}
+					
+					else if (setup.type === 1)
+					{
+						this.unlock_type_1_logic(...(setup.parents), [[0, 5], [4, 5], [5, 2]], [[2, 5], [5, 0], [5, 4]], [[1, 5], [3, 5], [5, 1], [5, 3], [5, 5]]);
+					}
+					
+					if (this.fertilizer_requests === 2)
 					{
 						this.change_soil(1);
 					}
-					
-					return;
-				}
-				
-				this.remove_unlocked_plants(false, 2);
-				
-				let setup = this.mutation_setups[this.seed_to_unlock];
-				
-				if (setup.type === 0)
-				{
-					this.unlock_type_0_logic(...(setup.parents), [[0, 5], [2, 5], [4, 5], [5, 0], [5, 2], [5, 4]], [[1, 5], [3, 5], [5, 1], [5, 3], [5, 5]]);
-				}
-				
-				else if (setup.type === 1)
-				{
-					this.unlock_type_1_logic(...(setup.parents), [[0, 5], [4, 5], [5, 2]], [[2, 5], [5, 0], [5, 4]], [[1, 5], [3, 5], [5, 1], [5, 3], [5, 5]]);
-				}
-				
-				if (this.fertilizer_requests === 2)
-				{
-					this.change_soil(1);
 				}
 			}
             
@@ -1116,6 +1119,19 @@
 				Game.ObjectsById[2].minigame.convert();
 				
 				this.seed_to_unlock = "meddleweed";
+				
+				
+				
+				this.mutation_setups["queenbeetLump"] =
+				{
+					id: 21,
+					type: 0,
+					parents: ["queenbeet"],
+					
+					tiles: [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [1, 0], [1, 2], [1, 4], [2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [3, 0], [3, 2], [3, 4], [4, 0], [4, 1], [4, 2], [4, 3], [4, 4]],
+				
+					empty_tiles: [[1, 1], [1, 3], [3, 1], [3, 3]]
+				};
 				
 				
 				
@@ -1459,6 +1475,11 @@
 					arg = 2;
 				}
 				
+				if (arg === 1 && Game.ObjectsById[2].minigame.plants["elderwort"].unlocked)
+				{
+					arg = 0;
+				}
+				
 				this.remove_unlocked_plants(true, arg);
 				
 				
@@ -1479,6 +1500,33 @@
 					if (intact !== 0)
 					{
 						return;
+					}
+					
+					//If we've got elderwort, it's time to switch to a 6x6.
+					if (Game.ObjectsById[2].minigame.plants["elderwort"].unlocked)
+					{
+						if (this.mutation_setups.queenbeetLump.empty_tiles[3][0] === 3)
+						{
+							//We also scrap *everything* so we don't get stuck targeting old plants.
+							for (let i = 0; i < 6; i++)
+							{
+								for (let j = 0; j < 6; j++)
+								{
+									Game.ObjectsById[2].minigame.harvest(j, i, true);
+								}
+							}
+						}
+						
+						this.mutation_setups.queenbeetLump = 
+						{
+							id: 21,
+							type: 0,
+							parents: ["queenbeet"],
+							
+							tiles: [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [1, 0], [1, 2], [1, 3], [1, 5], [2, 0], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [3, 0], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [4, 0], [4, 2], [4, 3], [4, 5], [5, 0], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5]],
+						
+							empty_tiles: [[1, 1], [1, 4], [4, 1], [4, 4]]
+						};
 					}
 				}
 				
@@ -1526,7 +1574,7 @@
 			
 			else
 			{
-				if (empty_tiles_override === 0 && this.seed_to_unlock !== "queenbeetLump")
+				if (empty_tiles_override === 0 && (this.seed_to_unlock !== "queenbeetLump" || this.seed_to_unlock === "queenbeetLump" && Game.ObjectsById[2].minigame.plants["elderwort"].unlocked))
 				{
 					this.change_soil(1);
 				}
@@ -1766,7 +1814,7 @@
 			
 			else
 			{
-				if (empty_tiles_override === 0 && this.seed_to_unlock !== "queenbeetLump")
+				if (empty_tiles_override === 0 && (this.seed_to_unlock !== "queenbeetLump" || this.seed_to_unlock === "queenbeetLump" && Game.ObjectsById[2].minigame.plants["elderwort"].unlocked))
 				{
 					this.change_soil(1);
 				}
@@ -2005,7 +2053,7 @@
 		{
 			let plant_id = Game.ObjectsById[2].minigame.plot[i][j][0] - 1;
 			
-			if (plant_id === this.mutation_setups["elderwort"].id)
+			if (plant_id === this.mutation_setups["elderwort"].id && Game.ObjectsById[2].minigame.plants["elderwort"].unlocked)
 			{
 				//Elderwort next to a JQB is never removed.
 				let found_target = false;
